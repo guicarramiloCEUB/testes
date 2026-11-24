@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URGEN – Sistema de Plano de Carreira e Gestão Acadêmica</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true">URGEN</span>
+        <div class="brand-text">
+          <strong>Universidade Regional de Gênios</strong>
+          <span>Sistema de Plano de Carreira e Gestão Acadêmica • Grupo 16 (TQSW)</span>
+        </div>
+      </div>
+      <div class="header-actions" id="header-actions">
+        <span class="user-pill" id="user-pill" hidden></span>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-db">Restaurar Base de Testes</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-logout" hidden>Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="app-nav" id="app-nav" aria-label="Navegação principal do sistema" hidden>
+    <ul class="nav-list" id="nav-list"></ul>
+  </nav>
+
+  <main id="main-content">
+    <h1 class="page-title" id="page-title" tabindex="-1">Autenticação de Usuário</h1>
+
+    <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden>
+      <span id="status-banner-text"></span>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-dismiss-banner">Fechar</button>
+    </div>
+
+    <!-- VIEW: LOGIN (UC001) -->
+    <section id="view-login" aria-labelledby="login-heading">
+      <div class="login-grid">
+        <div class="card">
+          <h2 id="login-heading">Acesso ao Sistema (UC001)</h2>
+          <p class="card-subtitle">Informe suas credenciais institucionais ou selecione um perfil de demonstração ao lado.</p>
+
+          <form id="login-form" action="#/login" method="POST" aria-labelledby="login-heading" novalidate>
+            <div class="field">
+              <label for="login-email">Login / E-mail Institucional <span class="req" aria-hidden="true">*</span></label>
+              <span id="login-email-hint" class="hint">Formato: nome.sobrenome@urgen.edu.br</span>
+              <input
+                type="email"
+                id="login-email"
+                name="email"
+                required
+                inputmode="email"
+                autocomplete="username"
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                enterkeyhint="next"
+                aria-describedby="login-email-hint"
+                data-error="login-email-error"
+              >
+              <div id="login-email-error" class="error-msg">
+                <span role="img" aria-label="Erro">❌</span> Informe um e-mail institucional válido (ex.: rh.teste@urgen.edu.br).
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="login-password">Senha <span class="req" aria-hidden="true">*</span></label>
+              <span id="login-pwd-hint" class="hint">Mínimo de 6 caracteres (padrão de homologação: Urgen@2026)</span>
+              <div class="password-row">
+                <input
+                  type="password"
+                  id="login-password"
+                  name="password"
+                  required
+                  minlength="6"
+                  autocomplete="current-password"
+                  enterkeyhint="done"
+                  aria-describedby="login-pwd-hint toggle-pwd-warn"
+                  data-error="login-pwd-error"
+                >
+                <button
+                  type="button"
+                  id="btn-toggle-pwd"
+                  class="btn btn-secondary"
+                  aria-pressed="false"
+                  aria-label="Mostrar senha"
+                  aria-describedby="toggle-pwd-warn"
+                >Mostrar</button>
+              </div>
+              <div id="login-pwd-error" class="error-msg">
+                <span role="img" aria-label="Erro">❌</span> Informe sua senha com pelo menos 6 caracteres.
+              </div>
+              <span id="toggle-pwd-warn" class="visually-hidden">Aviso: exibir a senha mostra os caracteres na tela.</span>
+            </div>
+
+            <div class="btn-row">
+              <button type="submit" id="btn-login-submit" class="btn btn-primary">Entrar no Sistema</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Perfis Pré-Cadastrados para Homologação</h2>
+          <p class="card-subtitle">Clique em qualquer perfil para preencher o formulário automaticamente (senha padrão: <code>Urgen@2026</code>) e executar os Casos de Teste dos Templates 03 a 06.</p>
+          <div class="demo-accounts-grid" id="demo-accounts"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DYNAMIC AUTHENTICATED VIEWS CONTAINER -->
+    <div id="app-views" hidden></div>
+  </main>
+
+  <!-- Native Confirmation Modal (RF017 - Critical Operations) -->
+  <dialog id="confirm-dialog" closedby="closerequest" aria-labelledby="confirm-title">
+    <h1 id="confirm-title">Confirmar Operação Crítica</h1>
+    <p id="confirm-message">Deseja realmente prosseguir com esta operação?</p>
+    <form method="dialog">
+      <div class="btn-row">
+        <button value="cancel" class="btn btn-secondary" autofocus>Cancelar</button>
+        <button value="confirm" class="btn btn-primary" id="confirm-accept-btn">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Native Modal for RH Rejection with Mandatory Justification (UC003 / RF008) -->
+  <dialog id="reject-dialog" closedby="closerequest" aria-labelledby="reject-title">
+    <h1 id="reject-title">Recusar Evolução de Carreira</h1>
+    <p>Informe obrigatoriamente a justificativa da recusa para ciência do servidor (RF008):</p>
+    <form id="reject-form" method="dialog">
+      <div class="field">
+        <label for="reject-reason">Justificativa da Recusa <span class="req" aria-hidden="true">*</span></label>
+        <span id="reject-hint" class="hint">Ex.: Portaria ou diploma comprobatório ilegível / não anexado.</span>
+        <textarea
+          id="reject-reason"
+          name="reason"
+          required
+          minlength="5"
+          aria-describedby="reject-hint"
+          data-error="reject-error"
+        ></textarea>
+        <div id="reject-error" class="error-msg">
+          <span role="img" aria-label="Erro">❌</span> Preencha a justificativa (mínimo de 5 caracteres) antes de recusar.
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="button" id="btn-reject-cancel" class="btn btn-secondary" autofocus>Cancelar</button>
+        <button type="submit" id="btn-reject-confirm" class="btn btn-danger">Confirmar Recusa</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="site-footer">
+    Universidade Regional de Gênios (URGEN) • Protótipo Funcional TCD – Grupo 16 (Isaac Machado, Andrei Barone, Gustavo Vieira, Guilherme de Castro) • Prof. Leonardo Pol (CEUB – 2026)
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
